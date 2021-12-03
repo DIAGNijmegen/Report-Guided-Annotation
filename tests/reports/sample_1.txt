@@ -1,0 +1,39 @@
+Klinische gegevens:
+PSA 10,7.
+Aanwijzing voor significant carcinoom?
+
+Verslag:
+Er werd gescand met het detectie-protocol: 3T zonder endorectale spoel.
+Van de locale prostaat zijn er T2-, diffusie gewogen (DWI)- en dynamische
+(DCE) opnamen tijdens contrasttoediening (15 ml Dotarem i.v.) gemaakt.
+
+Bevindingen:
+De prostaat heeft een volume van 30 cc. PSA densiteit: 0,36.
+
+Afwijking nr. 1: ter plaatse van perifere zone links posterieur doorlopend
+naar anterolateraal links van apex tot mid prostaat (IMA 12 en omliggende
+serie 5 en serie 9).
+Score T2W: 3, Score DCE: +, Score DWI: 5, minimale ADC waarde 347.
+Beeld past het best bij sterke verdenking op een significant carcinoom
+(PIRADS 5).
+De afmeting van de laesie (gemeten op de ADC opnamen) is circa 16 x 10 mm.
+Contact makend met het kapsel, nauwelijks bulging, geen macroscopische
+aanwijzingen voor extra prostatische uitbreiding.
+Geen tekenen van ingroei in de vesiculae.
+
+Afwijking nr. 2: ter plaatse van perifere zone rechts posterieur basis tot
+mid prostaat.
+Score T2W: 2, Score DCE: +, Score DWI: 2, minimale ADC waarde 1083.
+Beeld past het best bij enige prostatitis d.d. laaggradig carcinoom
+(PIRADS 2).
+De afmeting van dit gebied 14 x 11 mm.
+Enige bulging van het kapsel, geen tekenen van extra prostatische
+uitbreiding.
+
+Minimaal afgebeelde deel van het kleine bekken geen bijzonderheden.
+
+Impressie:
+Sterke verdenking op een significant carcinoom in de perifere zone links
+posterieur doorlopend naar antero-lateraal links apex tot mid prostaat;
+geen macroscopische aanwijzingen voor extra prostatische uitbreiding.
+(PIRADS 5).

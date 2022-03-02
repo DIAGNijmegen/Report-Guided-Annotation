@@ -1,5 +1,5 @@
 # Report Guided Annotation
-![Tests](https://github.com/joeranbosma/tmp/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/DIAGNijmegen/Report-Guided-Annotation/actions/workflows/tests.yml/badge.svg)
 
 ## Background
 Deep learning-based diagnostic performance increases with more annotated data, but manual annotation is a bottleneck in most fields. Experts evaluate diagnostic images during clinical routine, and write their findings in reports. Automatic annotation based on clinical reports could overcome the manual labelling bottleneck. This repository implements the generation of dense annotations from model predictions, guided by the target number of structures. 
@@ -161,7 +161,7 @@ num_lesions_to_retain_map = {}
 
 for fn in os.listdir(path_to_reports):
     if not '.txt' in fn:
-        print(f"Skipped {fn}, not a repot?")
+        print(f"Skipped {fn}, not a report?")
 
     # read radiology report
     with open(os.path.join(path_to_reports, fn)) as fp:

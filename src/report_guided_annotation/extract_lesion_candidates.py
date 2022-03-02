@@ -18,7 +18,7 @@ def preprocess_softmax_static(softmax: np.ndarray,
     confidences = []
     clipped_softmax = softmax.copy()
     clipped_softmax[softmax < threshold] = 0
-    blobs_index, num_blobs = ndimage.label(clipped_softmax, np.ones((3, 3, 3)))
+    blobs_index, num_blobs = ndimage.label(clipped_softmax)
 
     if num_blobs > 0:  # For Each Prediction
         for tumor in range(1, num_blobs+1):
@@ -83,7 +83,7 @@ def preprocess_softmax_dynamic(softmax: np.ndarray,
         mask_current_lesion = (all_hard_blobs == max_prob)
 
         # ensure that mask is only a single lesion candidate (this assumption fails when multiple lesions have the same max. prob)
-        mask_current_lesion_indexed, _ = ndimage.label(mask_current_lesion, np.ones((3, 3, 3)))
+        mask_current_lesion_indexed, _ = ndimage.label(mask_current_lesion)
         mask_current_lesion = (mask_current_lesion_indexed == 1)
 
         # create mask with its confidence
@@ -114,7 +114,7 @@ def preprocess_softmax_dynamic(softmax: np.ndarray,
 
 
 def preprocess_softmax(softmax: np.ndarray,
-                       threshold: Union[str, float] = 0.10,
+                       threshold: Union[str, float] = 'dynamic-fast',
                        min_voxels_detection: int = 10,
                        num_lesions_to_extract: int = 5,
                        dynamic_threshold_factor: float = 2.5,

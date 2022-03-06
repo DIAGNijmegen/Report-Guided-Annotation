@@ -244,6 +244,9 @@ def create_automatic_annotations_for_folder(input_dir: str,
             pred = np.load(pred_path)  # numpy array
         elif '.npz' in pred_fn:
             pred = np.load(pred_path)['softmax'].astype('float32')[1]  # nnUnet format
+        else:
+            raise ValueError(f"Unsupported file extension for {pred_fn}! Available are: "
+                             ".nii.gz, .nii, .mha, .mhd, .npy and .npz (nnUNet format).")
 
         # create automatic annotation
         pseudo_labels_hard, *_ = create_automatic_annotations(
@@ -252,6 +255,11 @@ def create_automatic_annotations_for_folder(input_dir: str,
             verbose=False,
             **kwargs
         )
+
+        if not pred_fn in pseudo_labels_hard:
+            # Could not create automatic annotation for this case, did not find sufficient lesion candidates
+            # (warning message is displayed in create_automatic_annotations)
+            continue
 
         # write psuedo labels to output directory
         # construct target filename (same as input, unless it is numpy/compressed numpy)
@@ -264,7 +272,7 @@ def create_automatic_annotations_for_folder(input_dir: str,
             create_parent_folder=True,
         )
 
-    print(f"Finished creating automatic annotations, see {output_dir}. ")
+    print(f"Finished creating automatic annotations, see output folder {output_dir}. ")
     return 1
 
 

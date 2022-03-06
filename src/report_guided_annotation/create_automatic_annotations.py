@@ -256,7 +256,7 @@ def create_automatic_annotations_for_folder(input_dir: str,
             **kwargs
         )
 
-        if not pred_fn in pseudo_labels_hard:
+        if pred_fn not in pseudo_labels_hard:
             # Could not create automatic annotation for this case, did not find sufficient lesion candidates
             # (warning message is displayed in create_automatic_annotations)
             continue

@@ -29,7 +29,7 @@ def preprocess_softmax_static(
     confidences = []
     clipped_softmax = softmax.copy()
     clipped_softmax[softmax < threshold] = 0
-    blobs_index, num_blobs = ndimage.label(clipped_softmax)
+    blobs_index, num_blobs = ndimage.label(clipped_softmax, structure=np.ones((3, 3, 3)))
 
     if num_blobs > 0:  # For Each Prediction
         for tumor in range(1, num_blobs+1):
@@ -96,7 +96,7 @@ def preprocess_softmax_dynamic(
         mask_current_lesion = (all_hard_blobs == max_prob)
 
         # ensure that mask is only a single lesion candidate (this assumption fails when multiple lesions have the same max. prob)
-        mask_current_lesion_indexed, _ = ndimage.label(mask_current_lesion)
+        mask_current_lesion_indexed, _ = ndimage.label(mask_current_lesion, structure=np.ones((3, 3, 3)))
         mask_current_lesion = (mask_current_lesion_indexed == 1)
 
         # create mask with its confidence
@@ -247,9 +247,8 @@ def preprocess_softmaxes(
         subject_id = future_to_args[future]
         try:
             all_hard_blobs, confidences, indexed_pred = future.result()
+            results[subject_id] = (all_hard_blobs, confidences, indexed_pred)
         except Exception as e:
             print(f"Exception: {e} for {subject_id}")
-        else:
-            results[subject_id] = all_hard_blobs, confidences, indexed_pred
 
     return results

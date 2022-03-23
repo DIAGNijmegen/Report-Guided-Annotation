@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 from pathlib import Path
 from scipy import ndimage
 import SimpleITK as sitk
@@ -33,5 +34,5 @@ def test_create_automatic_labels_for_folder():
         # read automatic annotation
         automatic_annot = sitk.ReadImage(str(output_dir / subject_fn))
         automatic_annot = sitk.GetArrayFromImage(automatic_annot)
-        _, num_blobs = ndimage.label(automatic_annot)
+        _, num_blobs = ndimage.label(automatic_annot, structure=np.ones((3, 3, 3)))
         assert num_lesions_to_retain == num_blobs

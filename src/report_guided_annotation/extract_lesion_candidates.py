@@ -102,15 +102,8 @@ def preprocess_softmax_dynamic(
         # create mask with its confidence
         hard_blob = (all_hard_blobs * mask_current_lesion)
 
-        # Detect whether the extractted mask is a ring/hollow sphere
-        # around an existing lesion candidate. For confident lesions,
-        # the surroundings of the prediction are still quite confident,
-        # and can become a second 'detection'. For an # example, please
-        # see extracted lesion candidates nr. 4 and 5 at:
-        # https://repos.diagnijmegen.nl/trac/ticket/9299#comment:49
-        # Detection method: grow currently extracted lesions by one voxel,
-        # and check if they overlap with the current extracted lesion.
-        extracted_lesions_grown = ndimage.morphology.binary_dilation(dynamic_hard_blobs > 0)
+        # Detect whether the extractted mask is too close to an existing lesion candidate
+        extracted_lesions_grown = ndimage.morphology.binary_dilation(dynamic_hard_blobs > 0, structure=np.ones((3, 3, 3)))
         current_lesion_has_overlap = (mask_current_lesion & extracted_lesions_grown).any()
 
         # Check if lesion candidate should be retained

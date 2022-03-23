@@ -210,7 +210,7 @@ def preprocess_softmaxes(
     remove_adjacent_lesion_candidates: bool = True,
     max_workers: Optional[int] = None,
     flat: Optional[bool] = None,
-    verbose: int = 0,
+    verbose: int = 1,
 ) -> "Dict[Hashable, Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]]":
     """
     Preprocess all softmax volumes using multiprocessing
@@ -230,7 +230,6 @@ def preprocess_softmaxes(
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         for subject_id, softmax in zip(subject_list, y_pred):
-            print(subject_id, 'has', softmax.shape)
             # add lesion extraction to the queue
             future = pool.submit(
                 preprocess_softmax,

@@ -192,8 +192,11 @@ def validate_and_convert(*inputs) -> "List[npt.NDArray[Any]]":
         ordered_case_ids = sorted(list(case_ids))
         inputs_flat = ([inp[c] for c in ordered_case_ids] for inp in inputs)
 
+        # convert to numpy arrays
+        return [np.array(inp) for inp in inputs_flat]
+
     # convert to numpy arrays
-    return [np.array(inp) for inp in inputs_flat]
+    return [np.array(inp) for inp in inputs]
 
 
 def preprocess_softmaxes(

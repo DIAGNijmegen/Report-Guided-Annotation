@@ -287,7 +287,7 @@ def create_automatic_annotations_for_folder(
 
 
 def write_lbl(
-    lbl: npt.NDArray[np.int_],
+    lbl: "npt.NDArray[np.int_]",
     dst_path: str,
     reference_img: Optional[sitk.Image] = None,
     create_parent_folder: bool = True

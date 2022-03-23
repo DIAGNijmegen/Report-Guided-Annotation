@@ -160,7 +160,7 @@ def preprocess_softmax(
     return all_hard_blobs, confidences, indexed_pred
 
 
-def validate_and_convert(*inputs) -> List[npt.NDArray[Any]]:
+def validate_and_convert(*inputs) -> "List[npt.NDArray[Any]]":
     """
     Validate inputs:
     - If the inputs consists of at least one dictionary, all inputs should be a dictionary

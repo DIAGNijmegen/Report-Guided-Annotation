@@ -420,7 +420,7 @@ def extract_all_scores_from_full_report(
 
             # decide on DCE
             if DCE == '+/-' or DCE == '-/+':
-                DCE = np.nan
+                DCE = ''
             elif DCE == '++':
                 DCE = '+'
             elif DCE != '-' and DCE != '+':

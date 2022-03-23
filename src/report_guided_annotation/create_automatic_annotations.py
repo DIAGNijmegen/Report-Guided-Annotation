@@ -9,6 +9,11 @@ from typing import Tuple, List, Dict, Union, Optional
 
 from report_guided_annotation.extract_lesion_candidates import preprocess_softmax
 
+try:
+    import numpy.typing as npt
+except ImportError:  # pragma: no cover
+    pass
+
 
 """
 Functions for automatically generating lesion annotations
@@ -23,9 +28,11 @@ References:
 """
 
 
-def create_automatic_annotations_from_softmax(pred: np.ndarray,
-                                              num_lesions_to_retain: int,
-                                              threshold: str = 'dynamic') -> Tuple[np.ndarray, np.ndarray, int]:
+def create_automatic_annotations_from_softmax(
+    pred: "npt.NDArray[np.float_]",
+    num_lesions_to_retain: int,
+    threshold: str = 'dynamic'
+) -> "Tuple[npt.NDArray[np.int_], npt.NDArray[np.float_], int]":
     """
     Create pseudo-labels from softmax prediction
     - pred: softmax predictions of shape (D, H, W) or (D, H, W, 2), with D, H and W spatial dimensions.
@@ -95,16 +102,17 @@ def create_automatic_annotations_from_softmax(pred: np.ndarray,
 
 
 def create_automatic_annotations(
-    prediction_map: Dict[str, np.ndarray],
+    prediction_map: "Dict[str, npt.NDArray[np.float_]]",
     num_lesions_to_retain_map: Dict[str, int],
     threshold: str = 'dynamic',
     skip_if_insufficient_lesions: bool = False,
     num_workers: int = 4,
     full_return: bool = False,
-    verbose: bool = True) -> Union[
-        Tuple[np.ndarray, np.ndarray],
-        Tuple[np.ndarray, np.ndarray, List[str], List[str], List[str]],
-]:
+    verbose: bool = True
+) -> """Union[
+        Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float_]]],
+        Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float_]], List[str], List[str], List[str]],
+]""":
     """
     Create automatic labels for multiple softmax predictions (with multiprocessing)
     The softmax predictions and number of lesions to retain should be specified as a dictionary:
@@ -185,9 +193,11 @@ def create_automatic_annotations(
     return pseudo_labels_hard, pseudo_labels_soft
 
 
-def create_automatic_annotations_for_folder(input_dir: str,
-                                            output_dir: str,
-                                            **kwargs) -> Union[int, Tuple[np.ndarray, np.ndarray]]:
+def create_automatic_annotations_for_folder(
+    input_dir: str,
+    output_dir: str,
+    **kwargs
+) -> "Union[int, Tuple[npt.NDArray[np.int_], npt.NDArray[np.float_]]]":
     """
     Create automatic labels for multiple softmax predictions (with multiprocessing)
     The softmax predictions should be individual .nii.gz/.npz/.npy files in the input dictionary:
@@ -276,10 +286,12 @@ def create_automatic_annotations_for_folder(input_dir: str,
     return 1
 
 
-def write_lbl(lbl: np.ndarray,
-              dst_path: str,
-              reference_img: Optional[sitk.Image] = None,
-              create_parent_folder: bool = True):
+def write_lbl(
+    lbl: npt.NDArray[np.int_],
+    dst_path: str,
+    reference_img: Optional[sitk.Image] = None,
+    create_parent_folder: bool = True
+) -> None:
     """Write automatic annotation to nifti"""
     lbl_itk = sitk.GetImageFromArray(lbl.astype(np.int8), sitk.sitkInt8)
 

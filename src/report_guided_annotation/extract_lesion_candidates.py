@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import itertools
 import numpy as np
 from scipy import ndimage
-from typing import List, Tuple, Optional, Union, Sequence, Hashable, Dict, Any
+from typing import List, Tuple, Optional, Union, Iterable, Sequence, Hashable, Dict, Any
 from tqdm import tqdm
 
 try:
@@ -18,10 +18,12 @@ Authors: anindox8, matinhz, joeranbosma
 
 
 # Preprocess Softmax Volume (Clipping, Max Confidence)
-def preprocess_softmax_static(softmax: np.ndarray,
-                              threshold: float = 0.10,
-                              min_voxels_detection: int = 10,
-                              max_prob_round_decimals: Optional[int] = 4) -> Tuple[np.ndarray, List[Tuple[int, float]], np.ndarray]:
+def preprocess_softmax_static(
+    softmax: "npt.NDArray[np.float_]",
+    threshold: float = 0.10,
+    min_voxels_detection: int = 10,
+    max_prob_round_decimals: Optional[int] = 4
+) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     # Load and Preprocess Softmax Image
     all_hard_blobs = np.zeros_like(softmax)
     confidences = []
@@ -51,13 +53,15 @@ def preprocess_softmax_static(softmax: np.ndarray,
     return all_hard_blobs, confidences, blobs_index
 
 
-def preprocess_softmax_dynamic(softmax: np.ndarray,
-                               min_voxels_detection: int = 10,
-                               num_lesions_to_extract: int = 5,
-                               dynamic_threshold_factor: float = 2.5,
-                               max_prob_round_decimals: Optional[int] = None,
-                               remove_adjacent_lesion_candidates: bool = True,
-                               max_prob_failsafe_stopping_threshold: float = 0.01) -> Tuple[np.ndarray, List[Tuple[int, float]], np.ndarray]:
+def preprocess_softmax_dynamic(
+    softmax: "npt.NDArray[np.float_]",
+    min_voxels_detection: int = 10,
+    num_lesions_to_extract: int = 5,
+    dynamic_threshold_factor: float = 2.5,
+    max_prob_round_decimals: Optional[int] = None,
+    remove_adjacent_lesion_candidates: bool = True,
+    max_prob_failsafe_stopping_threshold: float = 0.01
+) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic threshold to determine the location and size of lesions.
     Author: Joeran Bosma
@@ -65,7 +69,7 @@ def preprocess_softmax_dynamic(softmax: np.ndarray,
     working_softmax = softmax.copy()
     dynamic_hard_blobs = np.zeros_like(softmax)
     confidences: List[Tuple[int, float]] = []
-    dynamic_indexed_blobs = np.zeros_like(softmax, dtype=int)
+    dynamic_indexed_blobs: "npt.NDArray[np.int_]" = np.zeros_like(softmax, dtype=int)
 
     while len(confidences) < num_lesions_to_extract:
         tumor_index = 1 + len(confidences)
@@ -122,13 +126,15 @@ def preprocess_softmax_dynamic(softmax: np.ndarray,
     return dynamic_hard_blobs, confidences, dynamic_indexed_blobs
 
 
-def preprocess_softmax(softmax: np.ndarray,
-                       threshold: Union[str, float] = 'dynamic-fast',
-                       min_voxels_detection: int = 10,
-                       num_lesions_to_extract: int = 5,
-                       dynamic_threshold_factor: float = 2.5,
-                       max_prob_round_decimals: Optional[int] = None,
-                       remove_adjacent_lesion_candidates: bool = True) -> Tuple[np.ndarray, List[Tuple[int, float]], np.ndarray]:
+def preprocess_softmax(
+    softmax: "npt.NDArray[np.float_]",
+    threshold: Union[str, float] = 'dynamic-fast',
+    min_voxels_detection: int = 10,
+    num_lesions_to_extract: int = 5,
+    dynamic_threshold_factor: float = 2.5,
+    max_prob_round_decimals: Optional[int] = None,
+    remove_adjacent_lesion_candidates: bool = True,
+) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic or static threshold to determine the size of lesions.
     """
@@ -159,7 +165,7 @@ def validate_and_convert(*inputs) -> List[npt.NDArray[Any]]:
     Validate inputs:
     - If the inputs consists of at least one dictionary, all inputs should be a dictionary
     - If the inputs are dictionaries, check if the keys are the same
-    
+
     Convert inputs:
     - If the inputs are dictionaries, reduce to flat lists, with the same order for each input
     - Convert to numpy arrays
@@ -178,21 +184,21 @@ def validate_and_convert(*inputs) -> List[npt.NDArray[Any]]:
         )
 
         # check if all cases are present in each dictionary
-        cases = set(list(inputs[0]))
-        assert all(cases == set(list(inp)) for inp in inputs), \
+        case_ids = set(inputs[0])
+        assert all(case_ids == set(inp) for inp in inputs), \
             "Inputs must all contain the same cases!"
 
         # collect flat lists with cases in the same order
-        cases = sorted(list(cases))
-        inputs = ([inp[c] for c in cases] for inp in inputs)
+        ordered_case_ids = sorted(list(case_ids))
+        inputs_flat = ([inp[c] for c in ordered_case_ids] for inp in inputs)
 
     # convert to numpy arrays
-    return [np.array(inp) for inp in inputs]
+    return [np.array(inp) for inp in inputs_flat]
 
 
 def preprocess_softmaxes(
-    y_pred: Union[Dict[Hashable, npt.NDArray[np.float_]], Sequence[npt.NDArray[np.float_]], npt.NDArray[np.float_]],
-    subject_list: Optional[Sequence[str]] = None,
+    y_pred: "Union[Dict[Hashable, npt.NDArray[np.float_]], Sequence[npt.NDArray[np.float_]], npt.NDArray[np.float_]]",
+    subject_list: Optional[Iterable[Hashable]] = None,
     threshold: Union[str, float] = 'dynamic-fast',
     min_voxels_detection: int = 10,
     num_lesions_to_extract: int = 5,
@@ -202,7 +208,7 @@ def preprocess_softmaxes(
     max_workers: Optional[int] = None,
     flat: Optional[bool] = None,
     verbose: int = 0,
-) -> Tuple[np.ndarray, List[Tuple[int, float]], np.ndarray]:
+) -> "Dict[Hashable, Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]]":
     """
     Preprocess all softmax volumes using multiprocessing
     """
@@ -214,7 +220,7 @@ def preprocess_softmaxes(
 
     # placeholders
     future_to_args = {}
-    results = {}
+    results: "Dict[Hashable, Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]]" = {}
 
     # input validation
     y_pred = validate_and_convert(*y_pred)

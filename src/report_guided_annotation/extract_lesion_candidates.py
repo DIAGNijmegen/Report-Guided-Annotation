@@ -1,6 +1,15 @@
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+import itertools
 import numpy as np
 from scipy import ndimage
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional, Union, Sequence, Hashable, Dict, Any
+from tqdm import tqdm
+
+try:
+    import numpy.typing as npt
+except ImportError:  # pragma: no cover
+    pass
 
 """
 Extract lesion candidates from a softmax prediction
@@ -143,3 +152,96 @@ def preprocess_softmax(softmax: np.ndarray,
                                                                               max_prob_round_decimals=max_prob_round_decimals)
 
     return all_hard_blobs, confidences, indexed_pred
+
+
+def validate_and_convert(*inputs) -> List[npt.NDArray[Any]]:
+    """
+    Validate inputs:
+    - If the inputs consists of at least one dictionary, all inputs should be a dictionary
+    - If the inputs are dictionaries, check if the keys are the same
+    
+    Convert inputs:
+    - If the inputs are dictionaries, reduce to flat lists, with the same order for each input
+    - Convert to numpy arrays
+    """
+    # check if any of the inputs is a dictionary
+    any_dict = False
+    for inp in inputs:
+        if isinstance(inp, dict):
+            any_dict = True
+
+    if any_dict:
+        # check if all inputs are dictionaries
+        assert all(isinstance(inp, dict) for inp in inputs), (
+            "Inputs must either all be dictionaries, or all "
+            "iterables (with cases in the same order)!"
+        )
+
+        # check if all cases are present in each dictionary
+        cases = set(list(inputs[0]))
+        assert all(cases == set(list(inp)) for inp in inputs), \
+            "Inputs must all contain the same cases!"
+
+        # collect flat lists with cases in the same order
+        cases = sorted(list(cases))
+        inputs = ([inp[c] for c in cases] for inp in inputs)
+
+    # convert to numpy arrays
+    return [np.array(inp) for inp in inputs]
+
+
+def preprocess_softmaxes(
+    y_pred: Union[Dict[Hashable, npt.NDArray[np.float_]], Sequence[npt.NDArray[np.float_]], npt.NDArray[np.float_]],
+    subject_list: Optional[Sequence[str]] = None,
+    threshold: Union[str, float] = 'dynamic-fast',
+    min_voxels_detection: int = 10,
+    num_lesions_to_extract: int = 5,
+    dynamic_threshold_factor: float = 2.5,
+    max_prob_round_decimals: Optional[int] = None,
+    remove_adjacent_lesion_candidates: bool = True,
+    max_workers: Optional[int] = None,
+    flat: Optional[bool] = None,
+    verbose: int = 0,
+) -> Tuple[np.ndarray, List[Tuple[int, float]], np.ndarray]:
+    """
+    Preprocess all softmax volumes using multiprocessing
+    """
+    if subject_list is None:
+        # generate indices to keep track of each case during multiprocessing
+        subject_list = itertools.count()
+        if flat is None:
+            flat = True
+
+    # placeholders
+    future_to_args = {}
+    results = {}
+
+    # input validation
+    y_pred = validate_and_convert(*y_pred)
+
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        for subject_id, softmax in zip(subject_list, y_pred):
+            print(subject_id, 'has', softmax.shape)
+            # add lesion extraction to the queue
+            future = pool.submit(
+                preprocess_softmax,
+                softmax=softmax, threshold=threshold, min_voxels_detection=min_voxels_detection,
+                num_lesions_to_extract=num_lesions_to_extract, dynamic_threshold_factor=dynamic_threshold_factor,
+                max_prob_round_decimals=max_prob_round_decimals, remove_adjacent_lesion_candidates=remove_adjacent_lesion_candidates,
+            )
+            future_to_args[future] = subject_id
+
+    # process cases in parallel
+    iterator = concurrent.futures.as_completed(future_to_args)
+    if verbose:
+        iterator = tqdm(iterator, total=len(future_to_args))
+    for future in iterator:
+        subject_id = future_to_args[future]
+        try:
+            all_hard_blobs, confidences, indexed_pred = future.result()
+        except Exception as e:
+            print(f"Exception: {e} for {subject_id}")
+        else:
+            results[subject_id] = all_hard_blobs, confidences, indexed_pred
+
+    return results

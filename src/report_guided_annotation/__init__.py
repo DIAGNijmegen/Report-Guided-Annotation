@@ -8,7 +8,7 @@ from report_guided_annotation.parse_report import extract_pirads_scores
 from report_guided_annotation.extract_lesion_candidates import preprocess_softmax
 
 print("\n\nPlease cite the following paper when using Report Guided Annotations:\n\nBosma, J.S., et al. "
-      "\"Report Guided Automatic Lesion Annotation for Deep Learning Prostate Cancer Detection in bpMRI\" "
+      "\"Semi-supervised learning with report-guided lesion annotation for deep learning-based prostate cancer detection in bpMRI\" "
       "to be submitted\n\n")
 print("If you have questions or suggestions, feel free to open an issue at https://github.com/DIAGNijmegen/Report-Guided-Annotation\n")
 

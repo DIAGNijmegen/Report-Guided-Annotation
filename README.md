@@ -7,7 +7,7 @@ Deep learning-based diagnostic performance increases with more annotated data, b
 ## 📖 Citation
 If you use this algorithm in your work, please cite our work:
 
-J. S. Bosma, A. Saha, M. Hosseinzadeh, I. Slootweg, M. de Rooij, and H. Huisman (2022), "_Annotation-efficient cancer detection with report-guided lesion annotation for deep learning-based prostate cancer detection in bpMRI_", to be submitted
+J. S. Bosma, A. Saha, M. Hosseinzadeh, I. Slootweg, M. de Rooij, and H. Huisman (2022), "_Semi-supervised learning with report-guided lesion annotation for deep learning-based prostate cancer detection in bpMRI_", to be submitted
 
 
 ## Installation

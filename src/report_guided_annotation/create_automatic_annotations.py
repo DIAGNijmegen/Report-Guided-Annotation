@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 import SimpleITK as sitk
 from typing import Tuple, List, Dict, Union, Optional
 
-from report_guided_annotation.extract_lesion_candidates import preprocess_softmax
+from report_guided_annotation.extract_lesion_candidates import extract_lesion_candidates
 
 try:
     import numpy.typing as npt
@@ -36,7 +36,7 @@ def create_automatic_annotations_from_softmax(
     """
     Create pseudo-labels from softmax prediction
     - pred: softmax predictions of shape (D, H, W) or (D, H, W, 2), with D, H and W spatial dimensions.
-    - threshold: threshold for `preprocess_softmax` ('dynamic', 'dynamic-fast', 'otsu', or a static threshold)
+    - threshold: threshold for `extract_lesion_candidates` ('dynamic', 'dynamic-fast', 'otsu', or a static threshold)
     - num_lesions: number of lesions there should be (e.g., extracted from a radiology report)
 
     Returns:
@@ -60,7 +60,7 @@ def create_automatic_annotations_from_softmax(
                     E.g., for the lesion candidate with confidence of 0.3453, each voxel has the value 2
     """
     # please note that the indexed predictions are in random order!
-    _, confidences, indexed_pred = preprocess_softmax(
+    _, confidences, indexed_pred = extract_lesion_candidates(
         pred,
         threshold=threshold,
         num_lesions_to_extract=num_lesions_to_retain,
@@ -120,7 +120,7 @@ def create_automatic_annotations(
     - num_lesions_to_retain_map: {identifier1: num1, identifier2: num2, ...}
 
     Optional parameters:
-    - threshold: threshold for `preprocess_softmax`, see above
+    - threshold: threshold for `extract_lesion_candidates`, see above
     - skip_if_insufficient_lesions: whether to skip cases where fewer lesion candidates could be
                                     extracted than the target number of lesion specified by the user
     - num_workers: number of parallel calls to create automatic labels
@@ -221,7 +221,7 @@ def create_automatic_annotations_for_folder(
 
 
     Optional parameters:
-    - threshold: threshold for `preprocess_softmax`, see above
+    - threshold: threshold for `extract_lesion_candidates`, see above
     - skip_if_insufficient_lesions: whether to skip cases where fewer lesion candidates could be
                                     extracted than the target number of lesion specified by the user
     - num_workers: number of parallel calls to create automatic labels

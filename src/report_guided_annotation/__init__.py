@@ -5,7 +5,7 @@ from report_guided_annotation.create_automatic_annotations import (
       create_automatic_annotations_for_folder,
 )
 from report_guided_annotation.parse_report import extract_pirads_scores
-from report_guided_annotation.extract_lesion_candidates import preprocess_softmax
+from report_guided_annotation.extract_lesion_candidates import extract_lesion_candidates
 
 print("\n\nPlease cite the following paper when using Report Guided Annotations:\n\nBosma, J.S., et al. "
       "\"Semi-supervised learning with report-guided lesion annotation for deep learning-based prostate cancer detection in bpMRI\" "
@@ -18,5 +18,5 @@ __all__ = [
       "create_automatic_annotations",
       "create_automatic_annotations_for_folder",
       "extract_pirads_scores",
-      "preprocess_softmax",
+      "extract_lesion_candidates",
 ]

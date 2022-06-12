@@ -1,6 +1,7 @@
+from typing import List, Optional, Tuple, Union
+
 import numpy as np
 from scipy import ndimage
-from typing import List, Tuple, Optional, Union
 
 try:
     import numpy.typing as npt
@@ -87,7 +88,7 @@ def extract_lesion_candidates_dynamic(
         )
 
         # select blob with max. confidence
-        # note: the max_prob is re-computed in the (unlikely) case that the max. prob
+        # note: max_prob should be re-computed to account for the case where the max. prob
         # was inside a 'lesion candidate' of less than min_voxels_detection, which is
         # thus removed in preprocess_softmax_static.
         max_prob = np.max(all_hard_blobs)
@@ -105,7 +106,10 @@ def extract_lesion_candidates_dynamic(
         current_lesion_has_overlap = (mask_current_lesion & extracted_lesions_grown).any()
 
         # Check if lesion candidate should be retained
-        if (not remove_adjacent_lesion_candidates) or (not current_lesion_has_overlap):
+        if remove_adjacent_lesion_candidates and current_lesion_has_overlap:
+            # skip lesion candidate, as it is too close to an existing lesion candidate
+            pass
+        else:
             # store extracted lesion
             dynamic_hard_blobs += hard_blob
             confidences += [(tumor_index, max_prob)]

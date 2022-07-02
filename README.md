@@ -13,7 +13,7 @@ J. S. Bosma, A. Saha, M. Hosseinzadeh, I. Slootweg, M. de Rooij, and H. Huisman 
 ## Installation
 Report Guided Annotation is pip-installable:
 
-`pip install git+https://github.com/DIAGNijmegen/Report-Guided-Annotation`
+`pip install report_guided_annotation`
 
 
 ## Usage

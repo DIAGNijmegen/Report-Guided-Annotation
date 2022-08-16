@@ -133,6 +133,14 @@ def extract_lesion_candidates(
     """
     Generate detection proposals using a dynamic or static threshold to determine the size of lesions.
     """
+    # input validation
+    if softmax.dtype in [np.float16]:
+        softmax = softmax.astype(np.float32)
+    if softmax.dtype in [np.longdouble]:  # float128
+        softmax = softmax.astype(np.float64)
+    if softmax.dtype in [np.csingle, np.cdouble, np.clongdouble]:
+        raise ValueError('Softmax predicitons should be of type float.')
+
     if threshold == 'dynamic':
         all_hard_blobs, confidences, indexed_pred = extract_lesion_candidates_dynamic(
             softmax=softmax,

@@ -3,3 +3,5 @@ tox
 pytest
 pytest-cov
 mypy
+twine
+build

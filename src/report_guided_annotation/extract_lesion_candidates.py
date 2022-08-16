@@ -20,7 +20,9 @@ def extract_lesion_candidates_static(
     min_voxels_detection: int = 10,
     max_prob_round_decimals: Optional[int] = 4
 ) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
-    """Extract lesion candidates from a softmax volume"""
+    """
+    Extract lesion candidates from a softmax volume using a static threshold.
+    """
     # load and preprocess softmax volume
     all_hard_blobs = np.zeros_like(softmax)
     confidences = []
@@ -60,7 +62,6 @@ def extract_lesion_candidates_dynamic(
 ) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic threshold to determine the location and size of lesions.
-    Author: Joeran Bosma
     """
     working_softmax = softmax.copy()
     dynamic_hard_blobs = np.zeros_like(softmax)
@@ -132,6 +133,36 @@ def extract_lesion_candidates(
 ) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic or static threshold to determine the size of lesions.
+
+    Parameters
+    ----------
+    softmax : npt.NDArray[np.float_]
+        Softmax prediction
+    threshold : Union[str, float]
+        Threshold to use for the extraction of lesion candidates.
+        If 'dynamic', multiple thresholds are used, based on the softmax volume.
+        If 'dynamic-fast', a single threshold is used, based on the softmax volume.
+        If float, a static threshold is used (as specified).
+    min_voxels_detection : int
+        Minimum number of voxels in a lesion candidate.
+    num_lesions_to_extract : int
+        Number of lesion candidates to extract.
+    dynamic_threshold_factor : float
+        Ratio between max. of lesion candidate and its final extent. Higher factor means larger candidates.
+    max_prob_round_decimals : Optional[int]
+        Number of decimals to round the max. probability of a lesion candidate.
+    remove_adjacent_lesion_candidates : bool
+        If True, lesion candidates that are too close to an existing lesion candidate are removed.
+
+    Returns
+    -------
+    hard_blobs : npt.NDArray[np.float_]
+        Hard blobs of the input image, where each connected component is set to the lesion confidence.
+    confidences : List[Tuple[int, float]]
+        Confidences of the extracted lesion candidates (unordered).
+        Each entry is a tuple of (is_lesion, lesion confidence).
+    blobs_index : npt.NDArray[np.int_]
+        Volume where each connected component is set to the index of the extracted lesion candidate.
     """
     # input validation
     if softmax.dtype in [np.float16]:

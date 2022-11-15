@@ -1,13 +1,15 @@
-import os
-import json
-import numpy as np
-from tqdm import tqdm
 import concurrent.futures
+import json
+import os
 from concurrent.futures import ThreadPoolExecutor
-import SimpleITK as sitk
-from typing import Tuple, List, Dict, Union, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
-from report_guided_annotation.extract_lesion_candidates import extract_lesion_candidates
+import numpy as np
+import SimpleITK as sitk
+from tqdm import tqdm
+
+from report_guided_annotation.extract_lesion_candidates import \
+    extract_lesion_candidates
 
 try:
     import numpy.typing as npt
@@ -246,6 +248,11 @@ def create_automatic_annotations_for_folder(
     for pred_fn in tqdm(num_lesions_to_retain_map, desc='Creating automatic annotations'):
         pred, pred_itk = None, None
         pred_path = os.path.join(input_dir, pred_fn)
+        pred_fn_out = pred_fn.replace('.npy', '.nii.gz').replace('.npz', '.nii.gz')
+        automatic_annotation_path = os.path.join(output_dir, pred_fn_out)
+        if os.path.exists(automatic_annotation_path):
+            print(f"Skipping {pred_fn_out} because it already exists.")
+            continue
 
         if ('.nii.gz' in pred_fn) or ('.mha' in pred_fn) or ('.mhd' in pred_fn) or ('.nii' in pred_fn):
             pred_itk = sitk.ReadImage(pred_path)  # any format supported by SimpleITK
@@ -273,8 +280,6 @@ def create_automatic_annotations_for_folder(
 
         # write psuedo labels to output directory
         # construct target filename (same as input, unless it is numpy/compressed numpy)
-        pred_fn_out = pred_fn.replace('.npy', '.nii.gz').replace('.npz', '.nii.gz')
-        automatic_annotation_path = os.path.join(output_dir, pred_fn_out)
         write_lbl(
             lbl=pseudo_labels_hard[pred_fn],
             dst_path=automatic_annotation_path,

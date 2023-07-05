@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 from scipy import ndimage
@@ -16,7 +16,7 @@ Authors: anindox8, matinhz, joeranbosma
 
 def extract_lesion_candidates_static(
     softmax: "npt.NDArray[np.float_]",
-    threshold: float = 0.10,
+    threshold: "float | np.floating[Any]" = 0.10,
     min_voxels_detection: int = 10,
     max_prob_round_decimals: Optional[int] = 4
 ) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
@@ -119,7 +119,7 @@ def extract_lesion_candidates_dynamic(
         else:
             # store extracted lesion
             dynamic_hard_blobs += hard_blob
-            confidences += [(tumor_index, max_prob)]
+            confidences += [(tumor_index, float(max_prob))]
             dynamic_indexed_blobs += (mask_current_lesion * tumor_index)
 
         # remove extracted lesion from working-softmax
@@ -171,11 +171,11 @@ def extract_lesion_candidates(
         Volume where each connected component is set to the index of the extracted lesion candidate.
     """
     # input validation
-    if softmax.dtype in [np.float16]:
+    if softmax.dtype in [np.dtype(np.float16)]:
         softmax = softmax.astype(np.float32)
-    if softmax.dtype in [np.longdouble]:  # float128
+    elif softmax.dtype in [np.dtype(np.longdouble)]:  # float128
         softmax = softmax.astype(np.float64)
-    if softmax.dtype in [np.csingle, np.cdouble, np.clongdouble]:
+    elif softmax.dtype in [np.dtype(np.csingle), np.dtype(np.cdouble), np.dtype(np.clongdouble)]:  # type: ignore[comparison-overlap]
         raise ValueError('Softmax predicitons should be of type float.')
 
     if threshold == 'dynamic':

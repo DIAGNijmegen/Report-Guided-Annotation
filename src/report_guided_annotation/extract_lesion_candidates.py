@@ -93,9 +93,15 @@ def extract_lesion_candidates_dynamic(
         # was inside a 'lesion candidate' of less than min_voxels_detection, which is
         # thus removed in preprocess_softmax_static.
         max_prob = np.max(all_hard_blobs)
-        mask_current_lesion = (all_hard_blobs == max_prob)
+
+        if max_prob == 0:
+            # statis lesion extraction only extracted small lesions. Remove them and continue
+            mask_current_lesion = working_softmax > threshold
+            working_softmax = (working_softmax * (~mask_current_lesion))
+            continue
 
         # ensure that mask is only a single lesion candidate (this assumption fails when multiple lesions have the same max. prob)
+        mask_current_lesion = (all_hard_blobs == max_prob)
         mask_current_lesion_indexed, _ = ndimage.label(mask_current_lesion, structure=np.ones((3, 3, 3)))
         mask_current_lesion = (mask_current_lesion_indexed == 1)
 
@@ -103,7 +109,7 @@ def extract_lesion_candidates_dynamic(
         hard_blob = (all_hard_blobs * mask_current_lesion)
 
         # Detect whether the extractted mask is too close to an existing lesion candidate
-        extracted_lesions_grown = ndimage.morphology.binary_dilation(dynamic_hard_blobs > 0, structure=np.ones((3, 3, 3)))
+        extracted_lesions_grown = ndimage.binary_dilation(dynamic_hard_blobs > 0, structure=np.ones((3, 3, 3)))
         current_lesion_has_overlap = (mask_current_lesion & extracted_lesions_grown).any()
 
         # Check if lesion candidate should be retained

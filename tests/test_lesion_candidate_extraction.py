@@ -38,9 +38,9 @@ def test_lesion_candidate_extraction_dtypes_xfail(dtype):
     extract_lesion_candidates(softmax)
 
 
-def test_lesion_candidate_extration_dynamic_edge_case():
+def test_lesion_candidate_extraction_dynamic_edge_case():
     """
-    Test the dynamic lesion extration for an edge case.
+    Test the dynamic lesion extraction for an edge case.
     The extraction of lesion candidates results in two tiny
     "islands" of lesion candidates. These are removed due
     to the min_voxels_detection=10. Subsequently, the

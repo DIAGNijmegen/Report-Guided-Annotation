@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 from scipy import ndimage
@@ -16,7 +16,7 @@ Authors: anindox8, matinhz, joeranbosma
 
 def extract_lesion_candidates_static(
     softmax: "npt.NDArray[np.float_]",
-    threshold: float = 0.10,
+    threshold: "float | np.floating[Any]" = 0.10,
     min_voxels_detection: int = 10,
     max_prob_round_decimals: Optional[int] = 4
 ) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
@@ -58,10 +58,14 @@ def extract_lesion_candidates_dynamic(
     dynamic_threshold_factor: float = 2.5,
     max_prob_round_decimals: Optional[int] = None,
     remove_adjacent_lesion_candidates: bool = True,
-    max_prob_failsafe_stopping_threshold: float = 0.01
+    max_prob_failsafe_stopping_threshold: float = 0.01,
+    version: int = 1,
 ) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic threshold to determine the location and size of lesions.
+
+    Version 1 contained a bug where the max. prob was not checked to be positive after removing small lesions.
+    Version 2 fixes this bug.
     """
     working_softmax = softmax.copy()
     dynamic_hard_blobs = np.zeros_like(softmax)
@@ -93,9 +97,15 @@ def extract_lesion_candidates_dynamic(
         # was inside a 'lesion candidate' of less than min_voxels_detection, which is
         # thus removed in preprocess_softmax_static.
         max_prob = np.max(all_hard_blobs)
-        mask_current_lesion = (all_hard_blobs == max_prob)
+
+        if max_prob == 0 and version >= 2:
+            # static lesion extraction only extracted small lesions. Remove them and continue
+            mask_current_lesion = working_softmax > threshold
+            working_softmax = (working_softmax * (~mask_current_lesion))
+            continue
 
         # ensure that mask is only a single lesion candidate (this assumption fails when multiple lesions have the same max. prob)
+        mask_current_lesion = (all_hard_blobs == max_prob)
         mask_current_lesion_indexed, _ = ndimage.label(mask_current_lesion, structure=np.ones((3, 3, 3)))
         mask_current_lesion = (mask_current_lesion_indexed == 1)
 
@@ -103,7 +113,7 @@ def extract_lesion_candidates_dynamic(
         hard_blob = (all_hard_blobs * mask_current_lesion)
 
         # Detect whether the extractted mask is too close to an existing lesion candidate
-        extracted_lesions_grown = ndimage.morphology.binary_dilation(dynamic_hard_blobs > 0, structure=np.ones((3, 3, 3)))
+        extracted_lesions_grown = ndimage.binary_dilation(dynamic_hard_blobs > 0, structure=np.ones((3, 3, 3)))
         current_lesion_has_overlap = (mask_current_lesion & extracted_lesions_grown).any()
 
         # Check if lesion candidate should be retained
@@ -113,7 +123,7 @@ def extract_lesion_candidates_dynamic(
         else:
             # store extracted lesion
             dynamic_hard_blobs += hard_blob
-            confidences += [(tumor_index, max_prob)]
+            confidences += [(tumor_index, float(max_prob))]
             dynamic_indexed_blobs += (mask_current_lesion * tumor_index)
 
         # remove extracted lesion from working-softmax
@@ -165,21 +175,23 @@ def extract_lesion_candidates(
         Volume where each connected component is set to the index of the extracted lesion candidate.
     """
     # input validation
-    if softmax.dtype in [np.float16]:
+    if softmax.dtype in [np.dtype(np.float16)]:
         softmax = softmax.astype(np.float32)
-    if softmax.dtype in [np.longdouble]:  # float128
+    elif softmax.dtype in [np.dtype(np.longdouble)]:  # float128
         softmax = softmax.astype(np.float64)
-    if softmax.dtype in [np.csingle, np.cdouble, np.clongdouble]:
+    elif softmax.dtype in [np.dtype(np.csingle), np.dtype(np.cdouble), np.dtype(np.clongdouble)]:  # type: ignore[comparison-overlap]
         raise ValueError('Softmax predicitons should be of type float.')
 
-    if threshold == 'dynamic':
+    if threshold == 'dynamic' or threshold == 'dynamic-v2':
+        version = 2 if threshold == 'dynamic-v2' else 1
         all_hard_blobs, confidences, indexed_pred = extract_lesion_candidates_dynamic(
             softmax=softmax,
             dynamic_threshold_factor=dynamic_threshold_factor,
             num_lesions_to_extract=num_lesions_to_extract,
             remove_adjacent_lesion_candidates=remove_adjacent_lesion_candidates,
             min_voxels_detection=min_voxels_detection,
-            max_prob_round_decimals=max_prob_round_decimals
+            max_prob_round_decimals=max_prob_round_decimals,
+            version=version,
         )
     elif threshold == 'dynamic-fast':
         # determine max. softmax and set a per-case 'static' threshold based on that
@@ -189,7 +201,7 @@ def extract_lesion_candidates(
             softmax=softmax,
             threshold=threshold,
             min_voxels_detection=min_voxels_detection,
-            max_prob_round_decimals=max_prob_round_decimals
+            max_prob_round_decimals=max_prob_round_decimals,
         )
     else:
         threshold = float(threshold)  # convert threshold to float, if it wasn't already
@@ -197,7 +209,7 @@ def extract_lesion_candidates(
             softmax=softmax,
             threshold=threshold,
             min_voxels_detection=min_voxels_detection,
-            max_prob_round_decimals=max_prob_round_decimals
+            max_prob_round_decimals=max_prob_round_decimals,
         )
 
     return all_hard_blobs, confidences, indexed_pred

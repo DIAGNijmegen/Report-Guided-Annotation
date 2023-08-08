@@ -5,12 +5,12 @@ if __name__ == '__main__':
         long_description = fh.read()
 
     setuptools.setup(
-        version='0.2.7',  # note: also push to PyPI
+        version='0.3.0',  # note: also push to PyPI
         author_email='Joeran.Bosma@radboudumc.nl',
         long_description=long_description,
         long_description_content_type="text/markdown",
         url='https://github.com/DIAGNijmegen/Report-Guided-Annotation',
-        project_urls = {
+        project_urls={
             "Bug Tracker": "https://github.com/DIAGNijmegen/Report-Guided-Annotation/issues"
         },
         license='MIT',

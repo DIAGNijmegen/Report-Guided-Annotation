@@ -239,7 +239,7 @@ def create_automatic_annotations_for_folder(
     """
     # read number of lesion candidates to retain
     with open(os.path.join(input_dir, "num_lesions_to_retain_map.json")) as fp:
-        num_lesions_to_retain_map = json.load(fp)
+        num_lesions_to_retain_map: Dict[str, int] = json.load(fp)
 
     print(f"Found {len(num_lesions_to_retain_map)} samples in num_lesions_to_retain_map.json")
     print(f"Here are some examples, please check if they look okay: \n{list(num_lesions_to_retain_map)[0:5]}\n")
@@ -267,7 +267,7 @@ def create_automatic_annotations_for_folder(
 
         # create automatic annotation
         pseudo_labels_hard, *_ = create_automatic_annotations(
-            prediction_map={pred_fn: pred},
+            prediction_map={pred_fn: pred},  # type: ignore
             num_lesions_to_retain_map=num_lesions_to_retain_map,
             verbose=False,
             **kwargs
@@ -294,7 +294,7 @@ def create_automatic_annotations_for_folder(
 def write_lbl(
     lbl: "npt.NDArray[np.int_]",
     dst_path: str,
-    reference_img: Optional[sitk.Image] = None,
+    reference_img: "Optional[sitk.Image]" = None,
     create_parent_folder: bool = True
 ) -> None:
     """Write automatic annotation to nifti"""

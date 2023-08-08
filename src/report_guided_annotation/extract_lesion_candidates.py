@@ -182,14 +182,16 @@ def extract_lesion_candidates(
     elif softmax.dtype in [np.dtype(np.csingle), np.dtype(np.cdouble), np.dtype(np.clongdouble)]:  # type: ignore[comparison-overlap]
         raise ValueError('Softmax predicitons should be of type float.')
 
-    if threshold == 'dynamic':
+    if threshold == 'dynamic' or threshold == 'dynamic-v2':
+        version = 2 if threshold == 'dynamic-v2' else 1
         all_hard_blobs, confidences, indexed_pred = extract_lesion_candidates_dynamic(
             softmax=softmax,
             dynamic_threshold_factor=dynamic_threshold_factor,
             num_lesions_to_extract=num_lesions_to_extract,
             remove_adjacent_lesion_candidates=remove_adjacent_lesion_candidates,
             min_voxels_detection=min_voxels_detection,
-            max_prob_round_decimals=max_prob_round_decimals
+            max_prob_round_decimals=max_prob_round_decimals,
+            version=version,
         )
     elif threshold == 'dynamic-fast':
         # determine max. softmax and set a per-case 'static' threshold based on that
@@ -199,7 +201,7 @@ def extract_lesion_candidates(
             softmax=softmax,
             threshold=threshold,
             min_voxels_detection=min_voxels_detection,
-            max_prob_round_decimals=max_prob_round_decimals
+            max_prob_round_decimals=max_prob_round_decimals,
         )
     else:
         threshold = float(threshold)  # convert threshold to float, if it wasn't already
@@ -207,7 +209,7 @@ def extract_lesion_candidates(
             softmax=softmax,
             threshold=threshold,
             min_voxels_detection=min_voxels_detection,
-            max_prob_round_decimals=max_prob_round_decimals
+            max_prob_round_decimals=max_prob_round_decimals,
         )
 
     return all_hard_blobs, confidences, indexed_pred

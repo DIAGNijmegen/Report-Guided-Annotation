@@ -57,7 +57,7 @@ def test_lesion_candidate_extraction_dynamic_edge_case():
     # extract lesion candidates
     hard_blobs, confidences, blobs_index = extract_lesion_candidates(
         softmax=pred,
-        threshold='dynamic',
+        threshold='dynamic-v2',
     )
 
     # check output

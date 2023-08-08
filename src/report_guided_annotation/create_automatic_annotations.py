@@ -267,7 +267,7 @@ def create_automatic_annotations_for_folder(
 
         # create automatic annotation
         pseudo_labels_hard, *_ = create_automatic_annotations(
-            prediction_map={pred_fn: pred},
+            prediction_map={pred_fn: pred},  # type: ignore
             num_lesions_to_retain_map=num_lesions_to_retain_map,
             verbose=False,
             **kwargs

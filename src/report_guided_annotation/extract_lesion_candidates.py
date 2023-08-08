@@ -58,10 +58,14 @@ def extract_lesion_candidates_dynamic(
     dynamic_threshold_factor: float = 2.5,
     max_prob_round_decimals: Optional[int] = None,
     remove_adjacent_lesion_candidates: bool = True,
-    max_prob_failsafe_stopping_threshold: float = 0.01
+    max_prob_failsafe_stopping_threshold: float = 0.01,
+    version: int = 1,
 ) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic threshold to determine the location and size of lesions.
+
+    Version 1 contained a bug where the max. prob was not checked to be positive after removing small lesions.
+    Version 2 fixes this bug.
     """
     working_softmax = softmax.copy()
     dynamic_hard_blobs = np.zeros_like(softmax)
@@ -94,8 +98,8 @@ def extract_lesion_candidates_dynamic(
         # thus removed in preprocess_softmax_static.
         max_prob = np.max(all_hard_blobs)
 
-        if max_prob == 0:
-            # statis lesion extraction only extracted small lesions. Remove them and continue
+        if max_prob == 0 and version >= 2:
+            # static lesion extraction only extracted small lesions. Remove them and continue
             mask_current_lesion = working_softmax > threshold
             working_softmax = (working_softmax * (~mask_current_lesion))
             continue

@@ -7,7 +7,7 @@ Deep learning-based diagnostic performance increases with more annotated data, b
 ## 📖 Citation
 If you use this algorithm in your work, please cite our work:
 
-J. S. Bosma, A. Saha, M. Hosseinzadeh, I. Slootweg, M. de Rooij, and H. Huisman (2022), "_Semi-supervised learning with report-guided lesion annotation for deep learning-based prostate cancer detection in bpMRI_", to be submitted
+Bosma, J. S., Saha, A., Hosseinzadeh, M., Slootweg, I., de Rooij, M., & Huisman, H. (2023). Semi-supervised Learning with Report-guided Pseudo Labels for Deep Learning-based Prostate Cancer Detection Using Biparametric MRI. _Radiology: Artificial Intelligence_, doi:10.1148/ryai.230031..
 
 
 ## Installation

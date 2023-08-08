@@ -49,7 +49,7 @@ def test_lesion_candidate_extraction_dynamic_edge_case():
     The new version of the dynamic lesion extraction
     should not fail in this case.
     """
-    
+
     # load prediction
     pred = sitk.ReadImage('tests/input/dynamic_extraction_edge_case.mha')
     pred = sitk.GetArrayFromImage(pred)

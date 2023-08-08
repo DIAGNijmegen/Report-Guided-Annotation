@@ -10,7 +10,7 @@ if __name__ == '__main__':
         long_description=long_description,
         long_description_content_type="text/markdown",
         url='https://github.com/DIAGNijmegen/Report-Guided-Annotation',
-        project_urls = {
+        project_urls={
             "Bug Tracker": "https://github.com/DIAGNijmegen/Report-Guided-Annotation/issues"
         },
         license='MIT',

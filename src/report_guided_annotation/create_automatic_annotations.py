@@ -198,6 +198,7 @@ def create_automatic_annotations(
 def create_automatic_annotations_for_folder(
     input_dir: str,
     output_dir: str,
+    num_lesions_to_retain_map_path: Optional[str] = None,
     **kwargs
 ) -> "Union[int, Tuple[npt.NDArray[np.int_], npt.NDArray[np.float_]]]":
     """
@@ -238,8 +239,10 @@ def create_automatic_annotations_for_folder(
                                   was lower than the target number of lesions to retain (if skip_if_insufficient_lesions=True)
     """
     # read number of lesion candidates to retain
-    with open(os.path.join(input_dir, "num_lesions_to_retain_map.json")) as fp:
-        num_lesions_to_retain_map: Dict[str, int] = json.load(fp)
+    if num_lesions_to_retain_map_path is None:
+        num_lesions_to_retain_map_path = os.path.join(input_dir, "num_lesions_to_retain_map.json")
+    with open(num_lesions_to_retain_map_path) as fp:
+        num_lesions_to_retain_map = json.load(fp)
 
     print(f"Found {len(num_lesions_to_retain_map)} samples in num_lesions_to_retain_map.json")
     print(f"Here are some examples, please check if they look okay: \n{list(num_lesions_to_retain_map)[0:5]}\n")

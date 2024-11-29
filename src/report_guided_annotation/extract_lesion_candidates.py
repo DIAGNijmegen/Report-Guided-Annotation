@@ -15,11 +15,11 @@ Authors: anindox8, matinhz, joeranbosma
 
 
 def extract_lesion_candidates_static(
-    softmax: "npt.NDArray[np.float_]",
+    softmax: "npt.NDArray[np.float64]",
     threshold: "float | np.floating[Any]" = 0.10,
     min_voxels_detection: int = 10,
     max_prob_round_decimals: Optional[int] = 4
-) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
+) -> "Tuple[npt.NDArray[np.float64], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Extract lesion candidates from a softmax volume using a static threshold.
     """
@@ -52,7 +52,7 @@ def extract_lesion_candidates_static(
 
 
 def extract_lesion_candidates_dynamic(
-    softmax: "npt.NDArray[np.float_]",
+    softmax: "npt.NDArray[np.float64]",
     min_voxels_detection: int = 10,
     num_lesions_to_extract: int = 5,
     dynamic_threshold_factor: float = 2.5,
@@ -60,7 +60,7 @@ def extract_lesion_candidates_dynamic(
     remove_adjacent_lesion_candidates: bool = True,
     max_prob_failsafe_stopping_threshold: float = 0.01,
     version: int = 1,
-) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
+) -> "Tuple[npt.NDArray[np.float64], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic threshold to determine the location and size of lesions.
 
@@ -133,20 +133,20 @@ def extract_lesion_candidates_dynamic(
 
 
 def extract_lesion_candidates(
-    softmax: "npt.NDArray[np.float_]",
+    softmax: "npt.NDArray[np.float64]",
     threshold: Union[str, float] = 'dynamic-fast',
     min_voxels_detection: int = 10,
     num_lesions_to_extract: int = 5,
     dynamic_threshold_factor: float = 2.5,
     max_prob_round_decimals: Optional[int] = None,
     remove_adjacent_lesion_candidates: bool = True,
-) -> "Tuple[npt.NDArray[np.float_], List[Tuple[int, float]], npt.NDArray[np.int_]]":
+) -> "Tuple[npt.NDArray[np.float64], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic or static threshold to determine the size of lesions.
 
     Parameters
     ----------
-    softmax : npt.NDArray[np.float_]
+    softmax : npt.NDArray[np.float64]
         Softmax prediction
     threshold : Union[str, float]
         Threshold to use for the extraction of lesion candidates.
@@ -166,7 +166,7 @@ def extract_lesion_candidates(
 
     Returns
     -------
-    hard_blobs : npt.NDArray[np.float_]
+    hard_blobs : npt.NDArray[np.float64]
         Hard blobs of the input image, where each connected component is set to the lesion confidence.
     confidences : List[Tuple[int, float]]
         Confidences of the extracted lesion candidates (unordered).

@@ -31,10 +31,10 @@ References:
 
 
 def create_automatic_annotations_from_softmax(
-    pred: "npt.NDArray[np.float_]",
+    pred: "npt.NDArray[np.float64]",
     num_lesions_to_retain: int,
     threshold: str = 'dynamic'
-) -> "Tuple[npt.NDArray[np.int_], npt.NDArray[np.float_], int]":
+) -> "Tuple[npt.NDArray[np.int_], npt.NDArray[np.float64], int]":
     """
     Create pseudo-labels from softmax prediction
     - pred: softmax predictions of shape (D, H, W) or (D, H, W, 2), with D, H and W spatial dimensions.
@@ -104,7 +104,7 @@ def create_automatic_annotations_from_softmax(
 
 
 def create_automatic_annotations(
-    prediction_map: "Dict[str, npt.NDArray[np.float_]]",
+    prediction_map: "Dict[str, npt.NDArray[np.float64]]",
     num_lesions_to_retain_map: Dict[str, int],
     threshold: str = 'dynamic',
     skip_if_insufficient_lesions: bool = False,
@@ -112,8 +112,8 @@ def create_automatic_annotations(
     full_return: bool = False,
     verbose: bool = True
 ) -> """Union[
-        Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float_]]],
-        Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float_]], List[str], List[str], List[str]],
+        Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float64]]],
+        Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float64]], List[str], List[str], List[str]],
 ]""":
     """
     Create automatic labels for multiple softmax predictions (with multiprocessing)
@@ -200,7 +200,7 @@ def create_automatic_annotations_for_folder(
     output_dir: str,
     num_lesions_to_retain_map_path: Optional[str] = None,
     **kwargs
-) -> "Union[int, Tuple[npt.NDArray[np.int_], npt.NDArray[np.float_]]]":
+) -> "Union[int, Tuple[npt.NDArray[np.int_], npt.NDArray[np.float64]]]":
     """
     Create automatic labels for multiple softmax predictions (with multiprocessing)
     The softmax predictions should be individual .nii.gz/.npz/.npy files in the input dictionary:

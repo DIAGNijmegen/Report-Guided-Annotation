@@ -5,7 +5,7 @@ if __name__ == '__main__':
         long_description = fh.read()
 
     setuptools.setup(
-        version='0.3.1',  # note: also push to PyPI
+        version='0.3.2',  # note: also push to PyPI
         author_email='Joeran.Bosma@radboudumc.nl',
         long_description=long_description,
         long_description_content_type="text/markdown",

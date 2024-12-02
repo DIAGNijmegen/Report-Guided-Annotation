@@ -110,7 +110,8 @@ def create_automatic_annotations(
     skip_if_insufficient_lesions: bool = False,
     num_workers: int = 4,
     full_return: bool = False,
-    verbose: bool = True
+    verbose: bool = True,
+    create_automatic_annotations_from_softmax_function=create_automatic_annotations_from_softmax,
 ) -> """Union[
         Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float64]]],
         Tuple[Dict[str, npt.NDArray[np.int_]], Dict[str, npt.NDArray[np.float64]], List[str], List[str], List[str]],
@@ -155,7 +156,7 @@ def create_automatic_annotations(
 
             # add creation of automatic labels to queue
             future = pool.submit(
-                create_automatic_annotations_from_softmax,
+                create_automatic_annotations_from_softmax_function,
                 pred=pred,
                 num_lesions_to_retain=num_lesions_to_retain_map[subject_id],
                 threshold=threshold,

@@ -42,7 +42,7 @@ def extract_lesion_candidates_static(
 
         # add sufficiently sized detection
         hard_blob = hard_mask * clipped_softmax
-        lesion_confidence = lesion_confidence_aggregation(hard_blob)
+        lesion_confidence = lesion_confidence_aggregation(hard_blob[hard_blob > 0])
         if max_prob_round_decimals is not None:
             lesion_confidence = np.round(lesion_confidence, max_prob_round_decimals)
         hard_blob[hard_blob > 0] = lesion_confidence

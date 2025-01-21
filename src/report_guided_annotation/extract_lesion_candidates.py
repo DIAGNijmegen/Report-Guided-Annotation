@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 from scipy import ndimage
@@ -18,7 +18,8 @@ def extract_lesion_candidates_static(
     softmax: "npt.NDArray[np.float64]",
     threshold: "float | np.floating[Any]" = 0.10,
     min_voxels_detection: int = 10,
-    max_prob_round_decimals: Optional[int] = 4
+    max_prob_round_decimals: Optional[int] = 4,
+    lesion_confidence_aggregation: Callable[[np.ndarray], float] = np.max,
 ) -> "Tuple[npt.NDArray[np.float64], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Extract lesion candidates from a softmax volume using a static threshold.
@@ -32,8 +33,7 @@ def extract_lesion_candidates_static(
 
     for idx in range(1, num_blobs+1):
         # determine mask for current lesion
-        hard_mask = np.zeros_like(blobs_index)
-        hard_mask[blobs_index == idx] = 1
+        hard_mask = (blobs_index == idx).astype(int)
 
         if np.count_nonzero(hard_mask) <= min_voxels_detection:
             # remove small lesion candidates
@@ -42,12 +42,12 @@ def extract_lesion_candidates_static(
 
         # add sufficiently sized detection
         hard_blob = hard_mask * clipped_softmax
-        max_prob = np.max(hard_blob)
+        lesion_confidence = lesion_confidence_aggregation(hard_blob)
         if max_prob_round_decimals is not None:
-            max_prob = np.round(max_prob, max_prob_round_decimals)
-        hard_blob[hard_blob > 0] = max_prob
+            lesion_confidence = np.round(lesion_confidence, max_prob_round_decimals)
+        hard_blob[hard_blob > 0] = lesion_confidence
         all_hard_blobs += hard_blob
-        confidences.append((idx, max_prob))
+        confidences.append((idx, lesion_confidence))
     return all_hard_blobs, confidences, blobs_index
 
 
@@ -60,6 +60,7 @@ def extract_lesion_candidates_dynamic(
     remove_adjacent_lesion_candidates: bool = True,
     max_prob_failsafe_stopping_threshold: float = 0.01,
     version: int = 1,
+    lesion_confidence_aggregation: Callable[[np.ndarray], float] = np.max,
 ) -> "Tuple[npt.NDArray[np.float64], List[Tuple[int, float]], npt.NDArray[np.int_]]":
     """
     Generate detection proposals using a dynamic threshold to determine the location and size of lesions.
@@ -89,12 +90,13 @@ def extract_lesion_candidates_dynamic(
             softmax=working_softmax,
             threshold=threshold,
             min_voxels_detection=min_voxels_detection,
-            max_prob_round_decimals=max_prob_round_decimals
+            max_prob_round_decimals=max_prob_round_decimals,
+            lesion_confidence_aggregation=lesion_confidence_aggregation,
         )
 
         # select blob with max. confidence
         # note: max_prob should be re-computed to account for the case where the max. prob
-        # was inside a 'lesion candidate' of less than min_voxels_detection, which is
+        # was inside a "lesion candidate" of less than min_voxels_detection, which is
         # thus removed in preprocess_softmax_static.
         max_prob = np.max(all_hard_blobs)
 
@@ -134,7 +136,7 @@ def extract_lesion_candidates_dynamic(
 
 def extract_lesion_candidates(
     softmax: "npt.NDArray[np.float64]",
-    threshold: Union[str, float] = 'dynamic-fast',
+    threshold: Union[str, float] = "dynamic-fast",
     min_voxels_detection: int = 10,
     num_lesions_to_extract: int = 5,
     dynamic_threshold_factor: float = 2.5,
@@ -150,8 +152,8 @@ def extract_lesion_candidates(
         Softmax prediction
     threshold : Union[str, float]
         Threshold to use for the extraction of lesion candidates.
-        If 'dynamic', multiple thresholds are used, based on the softmax volume.
-        If 'dynamic-fast', a single threshold is used, based on the softmax volume.
+        If "dynamic", multiple thresholds are used, based on the softmax volume.
+        If "dynamic-fast", a single threshold is used, based on the softmax volume.
         If float, a static threshold is used (as specified).
     min_voxels_detection : int
         Minimum number of voxels in a lesion candidate.
@@ -180,10 +182,10 @@ def extract_lesion_candidates(
     elif softmax.dtype in [np.dtype(np.longdouble)]:  # float128
         softmax = softmax.astype(np.float64)
     elif softmax.dtype in [np.dtype(np.csingle), np.dtype(np.cdouble), np.dtype(np.clongdouble)]:  # type: ignore[comparison-overlap]
-        raise ValueError('Softmax predicitons should be of type float.')
+        raise ValueError("Softmax predicitons should be of type float.")
 
-    if threshold == 'dynamic' or threshold == 'dynamic-v2':
-        version = 2 if threshold == 'dynamic-v2' else 1
+    if threshold == "dynamic" or threshold == "dynamic-v2":
+        version = 2 if "v2" in threshold else 1
         all_hard_blobs, confidences, indexed_pred = extract_lesion_candidates_dynamic(
             softmax=softmax,
             dynamic_threshold_factor=dynamic_threshold_factor,
@@ -193,8 +195,20 @@ def extract_lesion_candidates(
             max_prob_round_decimals=max_prob_round_decimals,
             version=version,
         )
-    elif threshold == 'dynamic-fast':
-        # determine max. softmax and set a per-case 'static' threshold based on that
+    elif threshold == "dynamic-mean" or threshold == "dynamic-v2-mean":
+        version = 2 if "v2" in threshold else 1
+        all_hard_blobs, confidences, indexed_pred = extract_lesion_candidates_dynamic(
+            softmax=softmax,
+            dynamic_threshold_factor=dynamic_threshold_factor,
+            num_lesions_to_extract=num_lesions_to_extract,
+            remove_adjacent_lesion_candidates=remove_adjacent_lesion_candidates,
+            min_voxels_detection=min_voxels_detection,
+            max_prob_round_decimals=max_prob_round_decimals,
+            version=version,
+            lesion_confidence_aggregation=np.mean,
+        )
+    elif threshold == "dynamic-fast":
+        # determine max. softmax and set a per-case "static" threshold based on that
         max_prob = np.max(softmax)
         threshold = float(max_prob / dynamic_threshold_factor)
         all_hard_blobs, confidences, indexed_pred = extract_lesion_candidates_static(
@@ -202,6 +216,17 @@ def extract_lesion_candidates(
             threshold=threshold,
             min_voxels_detection=min_voxels_detection,
             max_prob_round_decimals=max_prob_round_decimals,
+        )
+    elif threshold == "dynamic-fast-mean":
+        # determine max. softmax and set a per-case "static" threshold based on that
+        max_prob = np.max(softmax)
+        threshold = float(max_prob / dynamic_threshold_factor)
+        all_hard_blobs, confidences, indexed_pred = extract_lesion_candidates_static(
+            softmax=softmax,
+            threshold=threshold,
+            min_voxels_detection=min_voxels_detection,
+            max_prob_round_decimals=max_prob_round_decimals,
+            lesion_confidence_aggregation=np.mean,
         )
     else:
         threshold = float(threshold)  # convert threshold to float, if it wasn't already
